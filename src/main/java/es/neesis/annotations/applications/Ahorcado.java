@@ -1,5 +1,8 @@
 package es.neesis.annotations.applications;
 
+import es.neesis.annotations.services.AhorcadoService;
+import es.neesis.annotations.services.GeneradorPalabras;
+import es.neesis.annotations.services.IAhorcadoService;
 import es.neesis.annotations.services.IPalabras;
 import org.springframework.stereotype.Component;
 
@@ -8,86 +11,43 @@ import java.util.Scanner;
 @Component
 public class Ahorcado {
 
-    private IPalabras generador;
-    private String palabraSecreta;
-    private StringBuilder palabraAdivinada;
-    private int intentos;
+    private final IAhorcadoService ahorcadoService;
 
-    public Ahorcado(IPalabras generador) {
-        this.generador = generador;
+
+    public Ahorcado(IAhorcadoService ahorcadoService) {
+        this.ahorcadoService = ahorcadoService;
     }
 
-    public void jugar(){
-        iniciarJuego();
-
+    public void run(){
         Scanner sc = new Scanner(System.in);
-        char letra;
+        String opcion;
 
-        while(intentos > 0 && palabraAdivinada.indexOf("_") != -1){
-            mostrarPartida();
+        do{
+            System.out.println("Juego del ahorcado, elija una opcion");
+            System.out.println("1. Juego nuevo");
+            System.out.println("2. Salir");
 
-            String entrada = sc.nextLine();
+            opcion = sc.nextLine();
 
-            if(entrada.isEmpty()){
-                break;
-            }
-
-            if(entrada.length() == 1){
-                letra = entrada.charAt(0);
-                comprovarLetra(letra);
-            }else{
-                if(entrada.equals(palabraSecreta)){
-                    palabraAdivinada = new StringBuilder(palabraSecreta);
+            switch (opcion){
+                case "1":
+                    IPalabras palabra = new GeneradorPalabras();
+                    AhorcadoService juego = new AhorcadoService(palabra);
+                    ahorcadoService.jugar();
                     break;
-                }else{
-                    intentos --;
-                    System.out.println("Palabra incorrecta");
-                }
+                case "2":
+                    System.out.println("¡Hasta luego!");
+                    break;
+                default:
+                    System.out.println("Opcion invalida");
+                    break;
+
             }
-        }
 
-        comprovarPartida();
-
-        System.out.println("Presione enter para continuar...");
-        sc.nextLine();
+        }while(!opcion.equals("2"));
 
         sc.close();
+
     }
-
-    private void iniciarJuego(){
-        palabraSecreta = generador.generarPalabra();
-        palabraAdivinada = new StringBuilder("_".repeat(palabraSecreta.length()));
-        intentos = 8;
-    }
-
-    private void comprovarLetra(char letra){
-        boolean acierto = false;
-        for(int i=0; i<palabraSecreta.length(); i++){
-            if(palabraSecreta.charAt(i) == letra){
-                acierto = true;
-                palabraAdivinada.setCharAt(i, letra);
-            }
-        }
-
-        if(!acierto){
-            System.out.println("Letra incorrecta");
-            intentos--;
-        }
-    }
-
-    private void mostrarPartida(){
-        System.out.println("Palabra a adivinar: " + palabraAdivinada);
-        System.out.println("Te quedan " + intentos + " intentos");
-        System.out.println("Introduce una letra: ");
-    }
-
-    private void comprovarPartida(){
-        if (palabraAdivinada.indexOf("_") == -1) {
-            System.out.println("¡Felicidades, has ganado! La palabra era: " + palabraSecreta);
-        } else {
-            System.out.println("¡Has perdido! La palabra correcta era: " + palabraSecreta);
-        }
-    }
-
 
 }
